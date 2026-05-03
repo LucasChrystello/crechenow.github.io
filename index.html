@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CrecheNow - Login</title>
+  <meta name="theme-color" content="#2a66b4">
+  <meta name="description" content="Agenda eletrônica segura para comunicação entre creches e responsáveis.">
+  <link rel="manifest" href="manifest.json">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/main.css">
+  <link rel="stylesheet" href="assets/css/components.css">
+  <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+</head>
+<body class="bg-light">
+  <div class="container-fluid p-0">
+    <div class="row g-0 min-vh-100">
+      <!-- Painel Institucional -->
+      <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center px-5 text-white position-relative" style="background: linear-gradient(135deg, #e19504, #f6b331);">
+        <div class="overlay-dark"></div>
+        <div class="position-relative z-1">
+          <h1 class="display-4 fw-bold mb-3 text-shadow">CRECHENOW</h1>
+          <p class="lead mb-4">Conecte-se mais rápido com seu filho</p>
+          <ul class="list-unstyled mt-4">
+            <li class="mb-3 d-flex align-items-start"><span class="badge bg-light text-dark me-2">🔔</span> Notificações Instantâneas: Saiba sobre atividades, eventos e alertas em tempo real.</li>
+            <li class="mb-3 d-flex align-items-start"><span class="badge bg-light text-dark me-2">📄</span> Informações Confiáveis: Sem bilhetes perdidos ou ligações esquecidas.</li>
+            <li class="d-flex align-items-start"><span class="badge bg-light text-dark me-2">🔒</span> Conforme a LGPD: Dados protegidos, coleta mínima e uso exclusivo para comunicação.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Formulário de Acesso -->
+      <div class="col-lg-6 d-flex align-items-center justify-content-center py-5 px-3">
+        <div class="card shadow-lg border-0 w-100" style="max-width: 420px;">
+          <div class="card-body p-4">
+            <h2 class="text-center mb-4 fw-semibold text-primary">Acesse sua conta</h2>
+            <form id="loginForm" class="needs-validation" novalidate>
+              <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="email" placeholder="nome@exemplo.com" required>
+                <label for="email">E-mail</label>
+                <div class="invalid-feedback">Insira um e-mail válido.</div>
+              </div>
+              <div class="form-floating mb-3">
+                <input type="password" class="form-control" id="senha" placeholder="Senha" required minlength="6">
+                <label for="senha">Senha</label>
+                <div class="invalid-feedback">Senha deve ter no mínimo 6 caracteres.</div>
+              </div>
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="lgpdConsent" required>
+                <label class="form-check-label small text-muted" for="lgpdConsent">
+                  Li e concordo com a <a href="#" data-bs-toggle="modal" data-bs-target="#lgpdModal">Política de Privacidade</a> e autorizo o uso dos dados para comunicação institucional.
+                </label>
+              </div>
+              <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Entrar</button>
+            </form>
+            <div class="text-center mt-3">
+              <a href="#" class="text-decoration-none small" id="demoAccess">Acessar demonstração</a>
+              <p class="text-muted small mt-2 mb-0">Não tem conta? O acesso é fornecido pela creche.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal LGPD -->
+  <div class="modal fade" id="lgpdModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Política de Privacidade (LGPD)</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body small text-muted">
+          <p>Coletamos apenas e-mail, nome do responsável e vínculo institucional. Seus dados são criptografados em trânsito, utilizados exclusivamente para notificações pedagógicas/saúde e podem ser excluídos a qualquer momento via contato com a creche.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/storage.js" defer></script>
+  <script src="assets/js/auth.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+</body>
+</html>

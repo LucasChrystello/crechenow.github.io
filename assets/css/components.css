@@ -1,0 +1,17 @@
+.notify-card { border-left: 4px solid transparent; transition: all 0.2s ease; }
+.notify-card.unread { background-color: #f8f9fa; border-left-color: var(--bs-warning); }
+.notify-card[data-type="saude"] { border-left-color: #dc3545; }
+.notify-card[data-type="pedagogico"] { border-left-color: #0d6efd; }
+.notify-card[data-type="reuniao"] { border-left-color: #198754; }
+
+.badge-priority { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.toast-container { z-index: 1100; }
+
+.agenda-item { padding: 0.75rem 1rem; border-bottom: 1px solid #eee; }
+.agenda-item:last-child { border-bottom: none; }
+.agenda-time { color: #6c757d; font-size: 0.85rem; }
+
+@media (max-width: 768px) {
+  .btn-group-sm .btn { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+  .notify-card .card-body { padding: 0.75rem; }
+}

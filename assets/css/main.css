@@ -1,0 +1,27 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bs-font-sans-serif: 'Poppins', system-ui, -apple-system, sans-serif;
+  --bs-primary: #2a66b4;
+  --bs-primary-rgb: 42, 102, 180;
+  --bs-secondary: #1d9caa;
+  --bs-success: #37af65;
+  --bs-warning: #e19504;
+  --bs-body-bg: #f8f9fa;
+}
+
+body { font-family: var(--bs-font-sans-serif); }
+.text-shadow { text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+.overlay-dark { position: absolute; inset: 0; background: linear-gradient(to right, rgba(0,0,0,0.1), rgba(0,0,0,0.4)); }
+
+/* Overrides Bootstrap */
+.btn-primary { --bs-btn-bg: var(--bs-primary); --bs-btn-border-color: var(--bs-primary); }
+.btn-primary:hover { background-color: #235596; border-color: #21508e; }
+.badge { font-weight: 500; }
+.form-floating > .form-control, .form-floating > .form-select { border-radius: 0.5rem; }
+.card { border-radius: 0.75rem; transition: transform 0.2s ease; }
+.card:hover { transform: translateY(-2px); }
+
+@media (max-width: 991px) {
+  .navbar-brand { font-size: 1.1rem; }
+}
