@@ -1,94 +1,143 @@
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('[App] Iniciando...');
+  
   // Inicializa módulos
-  CrecheNowAuth.init();
-  CrecheNowAuth.checkSession();
+  if (typeof CrecheNowStorage?.init === 'function') CrecheNowStorage.init();
+  if (typeof CrecheNowAuth?.init === 'function') CrecheNowAuth.init();
 
-  // Roteamento de formulários
+  // Login form
   const loginForm = document.getElementById('loginForm');
   if (loginForm) {
-    loginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      if (!loginForm.checkValidity()) { loginForm.classList.add('was-validated'); return; }
-      const email = document.getElementById('email').value;
-      const senha = document.getElementById('senha').value;
-      const lgpd = document.getElementById('lgpdConsent').checked;
-      const res = CrecheNowAuth.login(email, senha, lgpd);
-      if (res.success) {
-        window.location.href = CrecheNowStorage.get('session').role === 'parent' ? 'dashboard-parent.html' : 'dashboard-staff.html';
-      } else {
-        CrecheNowNotifications.showToast(res.msg, 'danger');
-      }
+    document.getElementById('toggleSenha')?.addEventListener('click', function() {
+      const input = document.getElementById('senha');
+      const icon = this.querySelector('i');
+      if (input.type === 'password') { input.type = 'text'; icon.classList.replace('bi-eye', 'bi-eye-slash'); }
+      else { input.type = 'password'; icon.classList.replace('bi-eye-slash', 'bi-eye'); }
     });
-    document.getElementById('demoAccess')?.addEventListener('click', (e) => {
+
+    loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      document.getElementById('email').value = 'pai@email.com';
-      document.getElementById('senha').value = '123456';
-      document.getElementById('lgpdConsent').checked = true;
+      document.getElementById('emailError')?.classList.remove('show');
+      document.getElementById('senhaError')?.classList.remove('show');
+      if (!loginForm.checkValidity()) { loginForm.classList.add('was-validated'); return; }
+
+      const btn = document.getElementById('btnLogin');
+      const original = btn.innerHTML;
+      btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Verificando...';
+      btn.disabled = true;
+
+      try {
+        const email = document.getElementById('email').value.trim();
+        const senha = document.getElementById('senha').value;
+        const lgpd = document.getElementById('lgpdConsent').checked;
+        const res = await CrecheNowAuth.login(email, senha, lgpd);
+
+        if (res.success) {
+          if (typeof CrecheNowNotifications?.showToast === 'function') CrecheNowNotifications.showToast(`Bem-vindo, ${res.user.name}!`);
+          setTimeout(() => { window.location.href = res.user.role === 'parent' ? 'dashboard-parent.html' : 'dashboard-staff.html'; }, 600);
+        } else {
+          if (res.error === 'email_not_found') { document.getElementById('emailError')?.classList.add('show'); document.getElementById('email')?.focus(); }
+          else if (res.error === 'wrong_password') { document.getElementById('senhaError')?.classList.add('show'); document.getElementById('senha')?.focus(); }
+          else if (typeof CrecheNowNotifications?.showToast === 'function') CrecheNowNotifications.showToast(res.msg, 'danger');
+        }
+      } catch (err) { console.error('[App] Erro:', err); if (typeof CrecheNowNotifications?.showToast === 'function') CrecheNowNotifications.showToast('Erro ao fazer login.', 'danger'); }
+      finally { btn.innerHTML = original; btn.disabled = false; }
+    });
+
+    // Demo buttons
+    document.querySelectorAll('.demo-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const role = btn.dataset.role;
+        if (!role || !['parent', 'staff'].includes(role)) return;
+        const original = btn.innerHTML;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        btn.disabled = true;
+        try {
+          const res = await CrecheNowAuth.demoLogin(role);
+          if (res.success) {
+            if (typeof CrecheNowNotifications?.showToast === 'function') CrecheNowNotifications.showToast(`Demo: ${res.user.name}`);
+            setTimeout(() => { window.location.href = role === 'parent' ? 'dashboard-parent.html' : 'dashboard-staff.html'; }, 600);
+          } else if (typeof CrecheNowNotifications?.showToast === 'function') CrecheNowNotifications.showToast(res.msg, 'danger');
+        } finally { btn.innerHTML = original; btn.disabled = false; }
+      });
     });
   }
 
+  // Staff form
   const staffForm = document.getElementById('staffForm');
   if (staffForm) {
     staffForm.addEventListener('submit', (e) => {
       e.preventDefault();
       if (!staffForm.checkValidity()) { staffForm.classList.add('was-validated'); return; }
+      const session = CrecheNowStorage?.getSession?.();
+      if (!session) return;
+
       const data = {
-        title: document.getElementById('notifyTitle').value,
+        title: document.getElementById('notifyTitle').value.trim(),
         type: document.getElementById('notifyType').value,
         target: document.getElementById('notifyTarget').value,
-        date: new Date(),
-        readCount: 0,
-        targetCount: document.getElementById('notifyTarget').value === 'all' ? 48 : 24
+        body: document.getElementById('notifyBody').value.trim(),
+        senderId: session.id,
+        hasAlert: document.getElementById('notifyAlert')?.checked || false,
+        alertDate: document.getElementById('alertDate')?.value || null
       };
-      const sent = CrecheNowStorage.get('sent_notifications') || [];
-      sent.unshift(data);
-      CrecheNowStorage.set('sent_notifications', sent);
+
+      const extra = { priority: data.type === 'alerta' ? 'high' : 'normal' };
+      if (data.hasAlert && data.alertDate && typeof CrecheNowModels?.Notification?.create === 'function') {
+        extra.alerts = [{ title: `Lembrete: ${data.title}`, date: data.alertDate.split('T')[0], description: data.body.substring(0, 100) }];
+      }
+
+      if (typeof CrecheNowModels?.Notification?.create === 'function') {
+        const notification = CrecheNowModels.Notification.create(data.title, data.body, data.type, data.senderId, data.target, extra);
+        CrecheNowStorage?.addNotification?.(notification);
+        if (data.hasAlert && extra.alerts?.[0] && typeof CrecheNowCalendar?.scheduleAlert === 'function') {
+          CrecheNowCalendar.scheduleAlert({ ...extra.alerts[0], time: data.alertDate?.split('T')[1] || '09:00', reminder: { enabled: true, minutesBefore: 30 } }, notification.id);
+        }
+      }
+
       staffForm.reset(); staffForm.classList.remove('was-validated');
-      CrecheNowNotifications.showToast('Comunicado enviado com sucesso!');
-      CrecheNowNotifications.renderSent();
+      if (typeof CrecheNowNotifications?.showToast === 'function') CrecheNowNotifications.showToast('Comunicado enviado!');
+      if (typeof CrecheNowNotifications?.renderSent === 'function') CrecheNowNotifications.renderSent();
     });
   }
 
-  document.getElementById('logoutBtn')?.addEventListener('click', CrecheNowAuth.logout);
-
-  // Filtros
-  document.querySelectorAll('[data-filter]')?.forEach(btn => {
-    btn.addEventListener('click', () => {
+  // Dashboard init
+  if (window.location.pathname.includes('dashboard')) {
+    const session = CrecheNowStorage?.getSession?.();
+    if (!session) { window.location.href = 'index.html'; return; }
+    const userNameEl = document.getElementById('userName');
+    if (userNameEl && session.name) userNameEl.textContent = session.name;
+    if (typeof CrecheNowNotifications?.init === 'function') CrecheNowNotifications.init();
+    if (typeof CrecheNowNotifications?.renderFeed === 'function') CrecheNowNotifications.renderFeed();
+    if (typeof CrecheNowNotifications?.renderAgenda === 'function') CrecheNowNotifications.renderAgenda();
+    if (typeof CrecheNowNotifications?.renderSent === 'function') CrecheNowNotifications.renderSent();
+    document.querySelectorAll('[data-filter]')?.forEach(btn => btn.addEventListener('click', () => {
       document.querySelectorAll('[data-filter]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-      CrecheNowNotifications.renderFeed(btn.dataset.filter);
-    });
-  });
-
-  // Registra SW
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-      .then(() => console.log('SW registrado'))
-      .catch(err => console.error('SW falha:', err));
+      if (typeof CrecheNowNotifications?.renderFeed === 'function') CrecheNowNotifications.renderFeed(btn.dataset.filter);
+    }));
+    document.getElementById('logoutBtn')?.addEventListener('click', () => { if (typeof CrecheNowAuth?.logout === 'function') CrecheNowAuth.logout(); });
   }
 
-  // Instalação PWA
+  // Service Worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js').catch(err => console.error('SW erro:', err));
+  }
+
+  // PWA install
   let deferredPrompt;
   window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
+    e.preventDefault(); deferredPrompt = e;
     if (!document.getElementById('installBtn')) {
       const btn = document.createElement('button');
-      btn.id = 'installBtn'; btn.className = 'btn btn-outline-primary btn-sm fixed-bottom m-3';
-      btn.textContent = '📲 Instalar CrecheNow';
-      btn.addEventListener('click', () => {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((res) => { if (res.outcome === 'accepted') btn.remove(); deferredPrompt = null; });
-      });
+      btn.id = 'installBtn'; btn.className = 'btn btn-primary btn-sm fixed-bottom m-3 shadow';
+      btn.innerHTML = '<i class="bi bi-download me-1"></i>Instalar CrecheNow';
+      btn.addEventListener('click', async () => { deferredPrompt.prompt(); deferredPrompt = null; btn.remove(); });
       document.body.appendChild(btn);
     }
   });
 
-  // Renderizações iniciais
-  if (window.location.pathname.includes('dashboard')) {
-    CrecheNowNotifications.renderFeed();
-    CrecheNowNotifications.renderAgenda();
-    CrecheNowNotifications.renderSent();
-    setInterval(CrecheNowStorage.processQueue, 60000); // Sync a cada 1min
-  }
+  // Sync queue
+  if (typeof CrecheNowStorage?.processQueue === 'function') setInterval(CrecheNowStorage.processQueue, 60000);
+  console.log('[App] Pronto!');
 });

@@ -1,63 +1,98 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-bs-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0d6efd" />
+  <meta name="description" content="CrecheNow - Painel dos Pais" />
+  
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/img/icons/icon-192x192.png" />
+  
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+  
   <title>CrecheNow - Painel Pais</title>
-  <meta name="theme-color" content="#2a66b4">
-  <link rel="manifest" href="manifest.json">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+  
+  <style>
+    :root { --creche-primary: #0d6efd; --creche-success: #198754; --creche-warning: #ffc107; --creche-danger: #dc3545; }
+    body { background: #f8f9fa; padding-bottom: 4rem; }
+    .navbar-brand { font-weight: 700; color: var(--creche-primary) !important; }
+    .notify-card { transition: all 0.2s ease; border-left: 4px solid transparent; }
+    .notify-card.unread { border-left-color: var(--creche-warning); background: #fffbeb; }
+    .notify-card.border-danger { border-left-color: var(--creche-danger) !important; }
+    .badge-priority { font-size: 0.7rem; }
+    .agenda-item { border-left: 3px solid var(--creche-primary); margin-bottom: 0.5rem; }
+    .agenda-time { background: var(--creche-primary); color: white; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.8rem; font-weight: 500; }
+    .filter-btn.active { background: var(--creche-primary) !important; color: white !important; }
+    .observation-box textarea { resize: none; font-size: 0.9rem; }
+    .observations-list { max-height: 150px; overflow-y: auto; font-size: 0.85rem; }
+    .toast { min-width: 280px; }
+    @media (max-width: 768px) { .navbar-brand span { display: none; } .agenda-time { font-size: 0.75rem; padding: 0.2rem 0.5rem; } }
+  </style>
 </head>
-<body class="bg-light">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-    <div class="container-fluid px-3">
-      <a class="navbar-brand fw-bold" href="#">CRECHENOW</a>
-      <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-light text-dark d-none d-md-block" id="user-role-badge">Responsável</span>
-        <button id="logoutBtn" class="btn btn-sm btn-outline-light">Sair</button>
+<body>
+  <div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1080"></div>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><i class="bi bi-building-check me-1"></i><span>CRECHENOW</span></a>
+      <div class="d-flex align-items-center gap-3">
+        <span class="text-muted small d-none d-sm-inline"><i class="bi bi-person-circle me-1"></i><span id="userName">Responsável</span></span>
+        <button id="logoutBtn" class="btn btn-outline-danger btn-sm"><i class="bi bi-box-arrow-right"></i><span class="d-none d-sm-inline ms-1">Sair</span></button>
       </div>
     </div>
   </nav>
 
   <main class="container py-4">
-    <div class="row g-4">
-      <!-- Feed de Notificações -->
-      <div class="col-12 col-lg-8">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-          <h2 class="h4 mb-0">Comunicados</h2>
-          <div class="btn-group btn-group-sm">
-            <button class="btn btn-outline-primary active" data-filter="all">Todos</button>
-            <button class="btn btn-outline-primary" data-filter="saude">Saúde</button>
-            <button class="btn btn-outline-primary" data-filter="pedagogico">Pedagógico</button>
-          </div>
-        </div>
-        <div id="notifications-feed" class="d-flex flex-column gap-3">
-          <!-- Renderizado via JS -->
-        </div>
-      </div>
-
-      <!-- Agenda Semanal -->
-      <div class="col-12 col-lg-4">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-white fw-semibold">📅 Agenda da Semana</div>
-          <div class="card-body p-0">
-            <ul class="list-group list-group-flush" id="agenda-list">
-              <!-- Renderizado via JS -->
-            </ul>
-          </div>
-        </div>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div><h4 class="mb-0">📢 Comunicados</h4><small class="text-muted">Acompanhe as novidades da creche</small></div>
+      <div class="d-flex gap-2" role="group">
+        <button class="btn btn-outline-secondary btn-sm filter-btn active" data-filter="all">Todos</button>
+        <button class="btn btn-outline-danger btn-sm filter-btn" data-filter="saude"><i class="bi bi-heart-pulse"></i> Saúde</button>
+        <button class="btn btn-outline-info btn-sm filter-btn" data-filter="pedagogico"><i class="bi bi-book"></i> Pedagógico</button>
       </div>
     </div>
+
+    <div id="notifications-feed" class="mb-4">
+      <div class="text-center py-5 text-muted"><i class="bi bi-inbox fs-1 d-block mb-2"></i><p>Carregando comunicados...</p></div>
+    </div>
+
+    <div class="card mb-4">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">📅 Agenda da Semana</h5><small class="text-muted" id="weekRange"></small>
+      </div>
+      <div class="card-body p-0">
+        <ul id="agenda-list" class="list-group list-group-flush"></ul>
+      </div>
+    </div>
+
+    <div class="alert alert-info small"><i class="bi bi-lightbulb me-1"></i><strong>Dica:</strong> Toque no ícone <i class="bi bi-calendar-plus"></i> para adicionar atividades ao seu Google Agenda. Ative as notificações do navegador para receber alertas em tempo real.</div>
   </main>
 
-  <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+  <!-- Scripts (caminhos corrigidos) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/js/storage.js" defer></script>
-  <script src="assets/js/auth.js" defer></script>
-  <script src="assets/js/notifications.js" defer></script>
-  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/models.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/calendar.js"></script>
+  <script src="assets/js/notifications.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/app.js"></script>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const session = typeof CrecheNowStorage !== 'undefined' ? CrecheNowStorage.getSession?.() : null;
+      if (session?.name && document.getElementById('userName')) {
+        document.getElementById('userName').textContent = session.name;
+      }
+      const today = new Date();
+      const options = { day: '2-digit', month: '2-digit' };
+      const nextWeek = new Date(today.getTime() + 6*24*60*60*1000);
+      const weekEl = document.getElementById('weekRange');
+      if (weekEl) weekEl.textContent = `${today.toLocaleDateString('pt-BR', options)} a ${nextWeek.toLocaleDateString('pt-BR', options)}`;
+    });
+  </script>
 </body>
 </html>

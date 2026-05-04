@@ -1,87 +1,134 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0d6efd" />
+  <meta name="description" content="CrecheNow - Agenda eletrônica e comunicação entre creche e famílias" />
+  
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/img/icons/icon-192x192.png" />
+  
+  <!-- Bootstrap 5 & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+  
   <title>CrecheNow - Login</title>
-  <meta name="theme-color" content="#2a66b4">
-  <meta name="description" content="Agenda eletrônica segura para comunicação entre creches e responsáveis.">
-  <link rel="manifest" href="manifest.json">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+  
+  <style>
+    body { background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); min-height: 100vh; display: flex; align-items: center; padding: 1rem; }
+    .login-card { max-width: 460px; margin: 0 auto; border: none; border-radius: 1rem; box-shadow: 0 0.5rem 2rem rgba(0,0,0,0.08); }
+    .brand { font-size: 1.75rem; font-weight: 700; color: #0d6efd; }
+    .feature-item { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.5rem 0; }
+    .feature-icon { width: 32px; height: 32px; background: #0d6efd; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .lgpd-badge { background: #e7f3ff; color: #084298; padding: 0.25rem 0.75rem; border-radius: 1rem; font-size: 0.8rem; font-weight: 500; }
+    .demo-btn { font-size: 0.9rem; padding: 0.5rem 1rem; }
+    .error-msg { display: none; font-size: 0.85rem; margin-top: 0.25rem; }
+    .error-msg.show { display: block; }
+    .spinner-border-sm { width: 1rem; height: 1rem; border-width: 2px; }
+  </style>
 </head>
-<body class="bg-light">
-  <div class="container-fluid p-0">
-    <div class="row g-0 min-vh-100">
-      <!-- Painel Institucional -->
-      <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center px-5 text-white position-relative" style="background: linear-gradient(135deg, #e19504, #f6b331);">
-        <div class="overlay-dark"></div>
-        <div class="position-relative z-1">
-          <h1 class="display-4 fw-bold mb-3 text-shadow">CRECHENOW</h1>
-          <p class="lead mb-4">Conecte-se mais rápido com seu filho</p>
-          <ul class="list-unstyled mt-4">
-            <li class="mb-3 d-flex align-items-start"><span class="badge bg-light text-dark me-2">🔔</span> Notificações Instantâneas: Saiba sobre atividades, eventos e alertas em tempo real.</li>
-            <li class="mb-3 d-flex align-items-start"><span class="badge bg-light text-dark me-2">📄</span> Informações Confiáveis: Sem bilhetes perdidos ou ligações esquecidas.</li>
-            <li class="d-flex align-items-start"><span class="badge bg-light text-dark me-2">🔒</span> Conforme a LGPD: Dados protegidos, coleta mínima e uso exclusivo para comunicação.</li>
-          </ul>
-        </div>
-      </div>
+<body>
+  <div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1080"></div>
 
-      <!-- Formulário de Acesso -->
-      <div class="col-lg-6 d-flex align-items-center justify-content-center py-5 px-3">
-        <div class="card shadow-lg border-0 w-100" style="max-width: 420px;">
-          <div class="card-body p-4">
-            <h2 class="text-center mb-4 fw-semibold text-primary">Acesse sua conta</h2>
-            <form id="loginForm" class="needs-validation" novalidate>
-              <div class="form-floating mb-3">
-                <input type="email" class="form-control" id="email" placeholder="nome@exemplo.com" required>
-                <label for="email">E-mail</label>
-                <div class="invalid-feedback">Insira um e-mail válido.</div>
-              </div>
-              <div class="form-floating mb-3">
-                <input type="password" class="form-control" id="senha" placeholder="Senha" required minlength="6">
-                <label for="senha">Senha</label>
-                <div class="invalid-feedback">Senha deve ter no mínimo 6 caracteres.</div>
-              </div>
-              <div class="form-check mb-3">
-                <input class="form-check-input" type="checkbox" id="lgpdConsent" required>
-                <label class="form-check-label small text-muted" for="lgpdConsent">
-                  Li e concordo com a <a href="#" data-bs-toggle="modal" data-bs-target="#lgpdModal">Política de Privacidade</a> e autorizo o uso dos dados para comunicação institucional.
-                </label>
-              </div>
-              <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Entrar</button>
-            </form>
-            <div class="text-center mt-3">
-              <a href="#" class="text-decoration-none small" id="demoAccess">Acessar demonstração</a>
-              <p class="text-muted small mt-2 mb-0">Não tem conta? O acesso é fornecido pela creche.</p>
+  <div class="container">
+    <div class="card login-card">
+      <div class="card-body p-4 p-md-5">
+        <div class="text-center mb-4">
+          <div class="brand mb-2"><i class="bi bi-building-check me-2"></i>CRECHENOW</div>
+          <p class="text-muted mb-2">Conecte-se mais rápido com seu filho</p>
+          <span class="lgpd-badge"><i class="bi bi-shield-check me-1"></i>Conforme a LGPD</span>
+        </div>
+
+        <div class="mb-4 small">
+          <div class="feature-item"><div class="feature-icon"><i class="bi bi-bell"></i></div><div><strong>Notificações Instantâneas:</strong> Saiba sobre atividades, eventos e alertas em tempo real.</div></div>
+          <div class="feature-item"><div class="feature-icon"><i class="bi bi-file-earmark-text"></i></div><div><strong>Informações Confiáveis:</strong> Sem bilhetes perdidos ou ligações esquecidas.</div></div>
+          <div class="feature-item"><div class="feature-icon"><i class="bi bi-lock"></i></div><div><strong>Privacidade Garantida:</strong> Dados protegidos, coleta mínima e uso exclusivo para comunicação.</div></div>
+        </div>
+
+        <form id="loginForm" class="needs-validation" novalidate>
+          <div class="mb-3">
+            <label for="email" class="form-label">E-mail</label>
+            <input type="email" class="form-control" id="email" placeholder="seu@email.com" required autocomplete="email" />
+            <div class="invalid-feedback">Insira um e-mail válido.</div>
+            <div id="emailError" class="error-msg text-danger">E-mail não cadastrado.</div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="senha" class="form-label">Senha</label>
+            <div class="input-group">
+              <input type="password" class="form-control" id="senha" placeholder="••••••" minlength="6" required autocomplete="current-password" />
+              <button class="btn btn-outline-secondary" type="button" id="toggleSenha" aria-label="Mostrar senha"><i class="bi bi-eye"></i></button>
+            </div>
+            <div class="invalid-feedback">Senha deve ter no mínimo 6 caracteres.</div>
+            <div id="senhaError" class="error-msg text-danger">Senha incorreta.</div>
+          </div>
+
+          <div class="form-check mb-3">
+            <input class="form-check-input" type="checkbox" id="lgpdConsent" required />
+            <label class="form-check-label small" for="lgpdConsent">
+              Li e concordo com a <a href="#" data-bs-toggle="modal" data-bs-target="#privacidadeModal">Política de Privacidade</a> e autorizo o uso dos dados para comunicação institucional.
+            </label>
+            <div class="invalid-feedback">Você precisa aceitar a política de privacidade.</div>
+          </div>
+
+          <button type="submit" class="btn btn-primary w-100 py-2 mb-3" id="btnLogin">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Entrar
+          </button>
+
+          <div class="d-grid gap-2 mb-3">
+            <small class="text-muted text-center">Ou acesse rapidamente como:</small>
+            <div class="d-flex gap-2">
+              <button type="button" class="btn btn-outline-primary btn-sm flex-fill demo-btn" data-role="parent">
+                <i class="bi bi-person me-1"></i>Pais
+              </button>
+              <button type="button" class="btn btn-outline-success btn-sm flex-fill demo-btn" data-role="staff">
+                <i class="bi bi-person-badge me-1"></i>Creche
+              </button>
             </div>
           </div>
-        </div>
+
+          <div class="text-center">
+            <small class="text-muted">Não tem conta? O acesso é fornecido pela creche.<br />
+            <a href="#" data-bs-toggle="modal" data-bs-target="#suporteModal">Precisa de ajuda?</a></small>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 
-  <!-- Modal LGPD -->
-  <div class="modal fade" id="lgpdModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
+  <!-- Modals -->
+  <div class="modal fade" id="privacidadeModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-scrollable">
       <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Política de Privacidade (LGPD)</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body small text-muted">
-          <p>Coletamos apenas e-mail, nome do responsável e vínculo institucional. Seus dados são criptografados em trânsito, utilizados exclusivamente para notificações pedagógicas/saúde e podem ser excluídos a qualquer momento via contato com a creche.</p>
+        <div class="modal-header"><h5 class="modal-title">Política de Privacidade (LGPD)</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body small">
+          <p><strong>Dados Coletados:</strong> E-mail, nome do responsável e vínculo institucional.</p>
+          <p><strong>Finalidade:</strong> Notificações pedagógicas, de saúde e eventos da creche.</p>
+          <p><strong>Proteção:</strong> Criptografia em trânsito, armazenamento local seguro e acesso restrito.</p>
+          <p class="mb-0"><strong>Direitos:</strong> Solicite exclusão ou alteração dos dados a qualquer momento entrando em contato com a coordenação.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+  <div class="modal fade" id="suporteModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header"><h5 class="modal-title">Suporte</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+        <div class="modal-body">Entre em contato com a coordenação:<br />📧 contato@creche.municipal.gov<br />📞 (11) 3456-7890</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts (ORDEM CRÍTICA - caminhos corrigidos) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/js/storage.js" defer></script>
-  <script src="assets/js/auth.js" defer></script>
-  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/models.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/calendar.js"></script>
+  <script src="assets/js/notifications.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/app.js"></script>
 </body>
 </html>

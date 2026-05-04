@@ -1,34 +1,41 @@
 const CrecheNowAuth = (() => {
-  const VALID_USERS = [
-    { email: 'pai@email.com', senha: '123456', role: 'parent', name: 'Responsável' },
-    { email: 'creche@municipal.gov', senha: 'staff123', role: 'staff', name: 'Coordenação' }
-  ];
-
   return {
     init: () => {
-      const session = CrecheNowStorage.get('session');
-      if (!session) return;
-      if (window.location.pathname.includes('index.html') || window.location.pathname === '/') {
+      if (typeof CrecheNowStorage?.init === 'function') CrecheNowStorage.init();
+      const session = CrecheNowStorage?.getSession?.();
+      const isLoginPage = window.location.pathname.includes('index.html') || window.location.pathname === '/';
+      if (session && isLoginPage) {
         window.location.href = session.role === 'parent' ? 'dashboard-parent.html' : 'dashboard-staff.html';
-      }
-    },
-    login: (email, senha, lgpdConsent) => {
-      const user = VALID_USERS.find(u => u.email === email && u.senha === senha);
-      if (!user) return { success: false, msg: 'Credenciais inválidas.' };
-      if (!lgpdConsent) return { success: false, msg: 'Aceite a política de privacidade.' };
-
-      CrecheNowStorage.set('session', { role: user.role, name: user.name, email: user.email });
-      return { success: true };
-    },
-    logout: () => {
-      CrecheNowStorage.set('session', null);
-      window.location.href = 'index.html';
-    },
-    checkSession: () => {
-      const session = CrecheNowStorage.get('session');
-      if (!session && !window.location.pathname.includes('index.html')) {
+      } else if (!session && !isLoginPage) {
         window.location.href = 'index.html';
       }
-    }
+    },
+
+    login: (email, senha, lgpdConsent) => {
+      if (!lgpdConsent) return { success: false, msg: 'Aceite a política de privacidade.' };
+      if (typeof CrecheNowStorage?.validateLogin !== 'function') return { success: false, msg: 'Erro interno. Recarregue a página.' };
+      const result = CrecheNowStorage.validateLogin(email, senha);
+      if (!result.success) return { success: false, error: result.error, msg: result.msg };
+      CrecheNowStorage.setSession(result.user);
+      return { success: true, user: result.user };
+    },
+
+    demoLogin: async (role) => {
+      await new Promise(resolve => setTimeout(resolve, 50));
+      if (typeof CrecheNowStorage?.getUsers !== 'function') return { success: false, msg: 'Erro ao carregar usuários.' };
+      const users = CrecheNowStorage.getUsers();
+      const demoUser = users?.find(u => u.role === role);
+      if (!demoUser) return { success: false, msg: `Usuário "${role}" não encontrado.` };
+      const { senha: _, ...safeUser } = demoUser;
+      CrecheNowStorage.setSession(safeUser);
+      return { success: true, user: safeUser };
+    },
+
+    logout: () => {
+      if (typeof CrecheNowStorage?.logout === 'function') CrecheNowStorage.logout();
+      window.location.href = 'index.html';
+    },
+
+    getSession: () => CrecheNowStorage?.getSession?.()
   };
 })();

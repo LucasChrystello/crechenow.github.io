@@ -1,96 +1,157 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-bs-theme="light">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0d6efd" />
+  <meta name="description" content="CrecheNow - Painel da Creche" />
+  
+  <!-- PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="assets/img/icons/icon-192x192.png" />
+  
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet" />
+  
   <title>CrecheNow - Painel Creche</title>
-  <meta name="theme-color" content="#2a66b4">
-  <link rel="manifest" href="manifest.json">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/main.css">
-  <link rel="stylesheet" href="assets/css/components.css">
-  <link rel="icon" href="assets/img/favicon.ico" type="image/x-icon">
+  
+  <style>
+    :root { --creche-primary: #0d6efd; --creche-success: #198754; --creche-warning: #ffc107; --creche-danger: #dc3545; }
+    body { background: #f8f9fa; padding-bottom: 4rem; }
+    .navbar-brand { font-weight: 700; color: var(--creche-primary) !important; }
+    .notify-card { transition: all 0.2s ease; border-left: 4px solid transparent; }
+    .notify-card.unread { border-left-color: var(--creche-warning); background: #fffbeb; }
+    .notify-card.border-danger { border-left-color: var(--creche-danger) !important; }
+    .badge-priority { font-size: 0.7rem; }
+    .form-card { border: 1px solid #dee2e6; border-radius: 0.75rem; margin-bottom: 1.5rem; }
+    .form-card .card-header { background: linear-gradient(135deg, var(--creche-primary), #0a58ca); color: white; border-radius: 0.75rem 0.75rem 0 0 !important; font-weight: 500; }
+    .table-history th { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6c757d; font-weight: 600; }
+    .table-history td { vertical-align: middle; font-size: 0.9rem; }
+    #alertDateGroup { background: #fff3cd; border: 1px dashed #ffc107; border-radius: 0.5rem; padding: 1rem; }
+    .toast { min-width: 280px; }
+    @media (max-width: 768px) { .navbar-brand span { display: none; } .table-history { font-size: 0.85rem; } .table-history th, .table-history td { padding: 0.5rem 0.25rem; } }
+  </style>
 </head>
-<body class="bg-light">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-    <div class="container-fluid px-3">
-      <a class="navbar-brand fw-bold" href="#">CRECHENOW</a>
-      <div class="d-flex align-items-center gap-2">
-        <span class="badge bg-warning text-dark">Funcionário</span>
-        <button id="logoutBtn" class="btn btn-sm btn-outline-light">Sair</button>
+<body>
+  <div id="toast-container" class="position-fixed top-0 end-0 p-3" style="z-index: 1080"></div>
+
+  <nav class="navbar navbar-expand-lg navbar-light bg-white border-bottom sticky-top">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="#"><i class="bi bi-building-check me-1"></i><span>CRECHENOW</span></a>
+      <div class="d-flex align-items-center gap-3">
+        <span class="text-muted small d-none d-sm-inline"><i class="bi bi-person-badge me-1"></i><span id="userName">Coordenação</span></span>
+        <button id="logoutBtn" class="btn btn-outline-danger btn-sm"><i class="bi bi-box-arrow-right"></i><span class="d-none d-sm-inline ms-1">Sair</span></button>
       </div>
     </div>
   </nav>
 
   <main class="container py-4">
-    <div class="row g-4">
-      <!-- Formulário de Envio -->
-      <div class="col-12 col-lg-6">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-white fw-semibold">📢 Novo Comunicado</div>
-          <div class="card-body">
-            <form id="staffForm" class="needs-validation" novalidate>
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label">Tipo</label>
-                  <select class="form-select" id="notifyType" required>
-                    <option value="geral">Geral</option>
-                    <option value="saude">Saúde</option>
-                    <option value="pedagogico">Pedagógico</option>
-                    <option value="reuniao">Reunião</option>
-                  </select>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Público</label>
-                  <select class="form-select" id="notifyTarget" required>
-                    <option value="all">Todas as turmas</option>
-                    <option value="turma-a">Turma A</option>
-                    <option value="turma-b">Turma B</option>
-                  </select>
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Título</label>
-                  <input type="text" class="form-control" id="notifyTitle" required maxlength="60">
-                </div>
-                <div class="col-12">
-                  <label class="form-label">Mensagem</label>
-                  <textarea class="form-control" id="notifyBody" rows="3" required maxlength="300"></textarea>
-                </div>
-                <div class="col-12">
-                  <button type="submit" class="btn btn-success w-100">Enviar Comunicado</button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+    <div class="mb-4"><h4 class="mb-1">📢 Novo Comunicado</h4><p class="text-muted mb-0">Envie mensagens para pais e responsáveis</p></div>
 
-      <!-- Histórico de Envios -->
-      <div class="col-12 col-lg-6">
-        <div class="card border-0 shadow-sm">
-          <div class="card-header bg-white fw-semibold">📋 Histórico de Envios</div>
-          <div class="card-body p-0">
-            <div class="table-responsive">
-              <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light">
-                  <tr><th>Assunto</th><th>Tipo</th><th>Lidos</th><th>Data</th></tr>
-                </thead>
-                <tbody id="sent-notifications">
-                  <!-- Renderizado via JS -->
-                </tbody>
-              </table>
+    <div class="form-card">
+      <div class="card-header px-3 py-2"><i class="bi bi-megaphone me-2"></i>Compor Mensagem</div>
+      <div class="card-body p-3 p-md-4">
+        <form id="staffForm" class="needs-validation" novalidate>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label small">Tipo</label>
+              <select class="form-select form-select-sm" id="notifyType" required>
+                <option value="geral">📋 Geral</option>
+                <option value="saude">❤️ Saúde</option>
+                <option value="pedagogico">📚 Pedagógico</option>
+                <option value="reuniao">👥 Reunião</option>
+                <option value="alerta">⚠️ Alerta Urgente</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small">Destinatários</label>
+              <select class="form-select form-select-sm" id="notifyTarget" required>
+                <option value="all">🌐 Todas as turmas</option>
+                <option value="Turma A">🧒 Turma A (Berçário)</option>
+                <option value="Turma B">👧 Turma B (Maternal)</option>
+              </select>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">Título</label>
+              <input type="text" class="form-control form-control-sm" id="notifyTitle" placeholder="Ex: Reunião de pais - Abril" required maxlength="100" />
+              <div class="invalid-feedback">Informe um título para o comunicado.</div>
+            </div>
+            <div class="col-12">
+              <label class="form-label small">Mensagem</label>
+              <textarea class="form-control form-control-sm" id="notifyBody" rows="4" placeholder="Descreva o comunicado..." required maxlength="500"></textarea>
+              <div class="form-text">Máximo de 500 caracteres.</div>
+              <div class="invalid-feedback">A mensagem não pode estar vazia.</div>
+            </div>
+            <div class="col-12">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="notifyAlert">
+                <label class="form-check-label small" for="notifyAlert"><i class="bi bi-bell"></i> Criar alerta/lembrete para os pais</label>
+              </div>
+            </div>
+            <div class="col-12 d-none" id="alertDateGroup">
+              <label class="form-label small">🔔 Data e hora do alerta</label>
+              <input type="datetime-local" class="form-control form-control-sm" id="alertDate" />
+              <small class="text-muted d-block mt-1"><i class="bi bi-info-circle"></i> O alerta será enviado 30 minutos antes do horário definido.</small>
             </div>
           </div>
+          <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="reset" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x-circle me-1"></i>Limpar</button>
+            <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-send me-1"></i>Enviar Comunicado</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">📋 Histórico de Envios</h5><span class="badge bg-secondary" id="sentCount">0</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover table-history mb-0">
+            <thead class="bg-light"><tr><th class="ps-3">Assunto</th><th>Tipo</th><th>Engajamento</th><th class="pe-3">Data</th></tr></thead>
+            <tbody id="sent-notifications"><tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-inbox fs-4 d-block mb-2"></i>Nenhum envio registrado ainda</td></tr></tbody>
+          </table>
         </div>
       </div>
     </div>
+
+    <div class="row g-3 mt-4">
+      <div class="col-6 col-md-3"><div class="card text-center border-0 bg-primary bg-opacity-10"><div class="card-body py-3"><div class="display-6 text-primary mb-1" id="statTotal">0</div><small class="text-muted">Comunicados</small></div></div></div>
+      <div class="col-6 col-md-3"><div class="card text-center border-0 bg-success bg-opacity-10"><div class="card-body py-3"><div class="display-6 text-success mb-1" id="statRead">0</div><small class="text-muted">Lidos pelos pais</small></div></div></div>
+      <div class="col-6 col-md-3"><div class="card text-center border-0 bg-info bg-opacity-10"><div class="card-body py-3"><div class="display-6 text-info mb-1" id="statAck">0</div><small class="text-muted">Pais cientes</small></div></div></div>
+      <div class="col-6 col-md-3"><div class="card text-center border-0 bg-warning bg-opacity-10"><div class="card-body py-3"><div class="display-6 text-warning mb-1" id="statPending">0</div><small class="text-muted">Aguardando</small></div></div></div>
+    </div>
   </main>
 
-  <div id="toast-container" class="toast-container position-fixed bottom-0 end-0 p-3"></div>
+  <!-- Scripts (caminhos corrigidos) -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="assets/js/storage.js" defer></script>
-  <script src="assets/js/auth.js" defer></script>
-  <script src="assets/js/notifications.js" defer></script>
-  <script src="assets/js/app.js" defer></script>
+  <script src="assets/js/models.js"></script>
+  <script src="assets/js/storage.js"></script>
+  <script src="assets/js/calendar.js"></script>
+  <script src="assets/js/notifications.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/app.js"></script>
+  
+  <script>
+    document.getElementById('notifyAlert')?.addEventListener('change', function() {
+      document.getElementById('alertDateGroup')?.classList.toggle('d-none', !this.checked);
+      if (this.checked) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(18, 0, 0, 0);
+        const iso = tomorrow.toISOString().slice(0, 16);
+        const alertDateEl = document.getElementById('alertDate');
+        if (alertDateEl) alertDateEl.value = iso;
+      }
+    });
+    document.addEventListener('DOMContentLoaded', () => {
+      const session = typeof CrecheNowStorage !== 'undefined' ? CrecheNowStorage.getSession?.() : null;
+      if (session?.name && document.getElementById('userName')) {
+        document.getElementById('userName').textContent = session.name;
+      }
+    });
+  </script>
 </body>
 </html>
